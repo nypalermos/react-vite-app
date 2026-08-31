@@ -1,0 +1,62 @@
+services:
+  mongodb:
+    image: mongo:8
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: devroot
+      MONGO_INITDB_ROOT_PASSWORD: devrootpassword
+    command: ["mongod", "--auth"]
+    volumes:
+      - mongodb-secure-data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "-u",
+          "devroot",
+          "-p",
+          "devrootpassword",
+          "--authenticationDatabase",
+          "admin",
+          "--quiet",
+          "--eval",
+          "db.adminCommand('ping').ok",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  vault:
+    image: hashicorp/vault:1.19
+    container_name: vault
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8201"
+    environment:
+      VAULT_ADDR: http://127.0.0.1:8201
+      VAULT_API_ADDR: http://127.0.0.1:8201
+    volumes:
+      - vault-data:/vault/data
+      - ./vault:/vault/config
+    entrypoint: ["vault"]
+    command: ["server", "-config=/vault/config/config.hcl"]
+    healthcheck:
+      test: ["CMD", "vault", "status", "-format=json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  mongodb-secure-data:
+    external: true
+  vault-data:
+    external: true

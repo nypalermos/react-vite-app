@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Build output
+dist/
+dist-ssr/
+build/
+.next/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Vault dev keys (also ignored in docker/.gitignore)
+docker/vault-keys.json
+docker/vault-unseal-keys.txt
+
+# Logs and OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Exclude comparison/legacy projects from the active stack repo
+my-next-app/
+my-react-app/
+react-application/
