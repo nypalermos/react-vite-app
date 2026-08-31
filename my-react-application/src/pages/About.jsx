@@ -4,7 +4,7 @@ function About() {
   return (
     <main className="about-page">
       <div className="about-box">
-        <h2>About</h2>
+        <h2>About React Vite</h2>
         <p>
           React Vite Application is a sample app for learning React with Vite.
           This landing page is the starting point for the UI.
