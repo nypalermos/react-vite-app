@@ -90,7 +90,10 @@ describe('Events', () => {
     renderWithRouter(<Events />)
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/api/events?limit=10&offset=0')
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/events?limit=10&offset=0',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      )
     })
 
     fetch.mockResolvedValueOnce({
@@ -103,6 +106,7 @@ describe('Events', () => {
     await waitFor(() => {
       expect(fetch).toHaveBeenLastCalledWith(
         '/api/events?limit=10&offset=0&event_type=Fake',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       )
     })
   })

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
 const PAGE_SIZE = 10
@@ -17,51 +17,60 @@ function Events() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
-  const fetchEvents = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+  useEffect(() => {
+    const abortController = new AbortController()
 
-    const params = new URLSearchParams({
-      limit: String(PAGE_SIZE),
-      offset: String(offset),
-    })
-    if (eventTypeFilter) {
-      params.set('event_type', eventTypeFilter)
-    }
-
-    try {
-      const response = await fetch(`/api/events?${params}`)
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`)
+    async function loadEvents() {
+      const params = new URLSearchParams({
+        limit: String(PAGE_SIZE),
+        offset: String(offset),
+      })
+      if (eventTypeFilter) {
+        params.set('event_type', eventTypeFilter)
       }
 
-      const data = await response.json()
-      setEvents(data.items)
-      setTotal(data.total)
-    } catch (fetchError) {
-      setEvents([])
-      setTotal(0)
-      setError(
-        fetchError instanceof Error
-          ? fetchError.message
-          : 'Unable to reach the API. Is the Python server running?',
-      )
-    } finally {
-      setLoading(false)
-    }
-  }, [offset, eventTypeFilter])
+      try {
+        const response = await fetch(`/api/events?${params}`, {
+          signal: abortController.signal,
+        })
 
-  useEffect(() => {
-    fetchEvents()
-  }, [fetchEvents])
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`)
+        }
 
-  useEffect(() => {
-    if (!loading && total > 0 && offset >= total) {
-      setOffset(Math.max(0, total - PAGE_SIZE))
+        const data = await response.json()
+        if (data.total > 0 && offset >= data.total) {
+          setOffset(Math.max(0, data.total - PAGE_SIZE))
+          return
+        }
+
+        setEvents(data.items)
+        setTotal(data.total)
+        setError(null)
+      } catch (fetchError) {
+        if (abortController.signal.aborted) {
+          return
+        }
+
+        setEvents([])
+        setTotal(0)
+        setError(
+          fetchError instanceof Error
+            ? fetchError.message
+            : 'Unable to reach the API. Is the Python server running?',
+        )
+      } finally {
+        if (!abortController.signal.aborted) {
+          setLoading(false)
+        }
+      }
     }
-  }, [loading, total, offset])
+
+    loadEvents()
+    return () => abortController.abort()
+  }, [offset, eventTypeFilter, reloadKey])
 
   async function handleDelete(eventId, eventName) {
     const confirmed = window.confirm(
@@ -87,10 +96,11 @@ function Events() {
         throw new Error(`Request failed with status ${response.status}`)
       }
 
+      setLoading(true)
       if (events.length === 1 && offset > 0) {
         setOffset(Math.max(0, offset - PAGE_SIZE))
       } else {
-        await fetchEvents()
+        setReloadKey((current) => current + 1)
       }
     } catch (deleteError) {
       setError(
@@ -104,8 +114,19 @@ function Events() {
   }
 
   function handleFilterChange(event) {
+    setLoading(true)
     setEventTypeFilter(event.target.value)
     setOffset(0)
+  }
+
+  function goToPreviousPage() {
+    setLoading(true)
+    setOffset(Math.max(0, offset - PAGE_SIZE))
+  }
+
+  function goToNextPage() {
+    setLoading(true)
+    setOffset(offset + PAGE_SIZE)
   }
 
   const pageStart = total === 0 ? 0 : offset + 1
@@ -183,7 +204,7 @@ function Events() {
               <button
                 type="button"
                 className="time-button"
-                onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+                onClick={goToPreviousPage}
                 disabled={!hasPrevious || loading}
               >
                 Previous
@@ -191,7 +212,7 @@ function Events() {
               <button
                 type="button"
                 className="time-button"
-                onClick={() => setOffset(offset + PAGE_SIZE)}
+                onClick={goToNextPage}
                 disabled={!hasNext || loading}
               >
                 Next
