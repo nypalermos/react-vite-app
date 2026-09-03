@@ -64,6 +64,17 @@ class InMemoryEventsCollection:
 
         return _ReplaceResult(matched_count=0)
 
+    def delete_one(self, query: dict[str, Any]):
+        for index, existing in enumerate(self._documents):
+            if _matches(existing, query):
+                del self._documents[index]
+                return _DeleteResult(deleted_count=1)
+
+        return _DeleteResult(deleted_count=0)
+
+    def count_documents(self, query: dict[str, Any]) -> int:
+        return sum(1 for document in self._documents if _matches(document, query))
+
 
 class _Cursor:
     def __init__(self, documents: list[dict[str, Any]]) -> None:
@@ -74,6 +85,14 @@ class _Cursor:
         self._documents.sort(key=lambda document: document[field], reverse=reverse)
         return self
 
+    def skip(self, count: int):
+        self._documents = self._documents[count:]
+        return self
+
+    def limit(self, count: int):
+        self._documents = self._documents[:count]
+        return self
+
     def __iter__(self):
         return iter(self._documents)
 
@@ -81,6 +100,11 @@ class _Cursor:
 class _ReplaceResult:
     def __init__(self, matched_count: int) -> None:
         self.matched_count = matched_count
+
+
+class _DeleteResult:
+    def __init__(self, deleted_count: int) -> None:
+        self.deleted_count = deleted_count
 
 
 def _matches(document: dict[str, Any], query: dict[str, Any]) -> bool:

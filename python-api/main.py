@@ -1,11 +1,19 @@
 from datetime import datetime, timezone
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo.errors import PyMongoError
 
-from database import create_event, get_event_by_id, list_events, update_event
-from schemas import Event, EventCreate, EventSummary, EventUpdate
+from database import (
+    MAX_PAGE_LIMIT,
+    create_event,
+    delete_event,
+    get_event_by_id,
+    list_events,
+    update_event,
+)
+from schemas import Event, EventCreate, EventListResponse, EventSummary, EventType, EventUpdate
 from settings import APP_MODE
 
 app = FastAPI(title="React Vite API")
@@ -13,7 +21,7 @@ app = FastAPI(title="React Vite API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
-    allow_methods=["GET", "POST", "PUT"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
 )
 
 API_PORT = 8000
@@ -29,15 +37,21 @@ def get_current_time():
     return {"time": datetime.now(timezone.utc).isoformat()}
 
 
-@app.get("/events", response_model=list[EventSummary])
-def get_events():
+@app.get("/events", response_model=EventListResponse)
+def get_events(
+    limit: Annotated[int, Query(ge=1, le=MAX_PAGE_LIMIT)] = 10,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    event_type: EventType | None = None,
+):
     try:
-        return list_events()
+        items, total = list_events(limit=limit, offset=offset, event_type=event_type)
     except (PyMongoError, RuntimeError, ValueError) as error:
         raise HTTPException(
             status_code=503,
             detail=str(error),
         ) from error
+
+    return EventListResponse(items=items, total=total, limit=limit, offset=offset)
 
 
 @app.get("/events/{event_id}", response_model=Event)
@@ -81,6 +95,22 @@ def put_event(event_id: int, payload: EventUpdate):
         raise HTTPException(status_code=404, detail="Event not found")
 
     return event
+
+
+@app.delete("/events/{event_id}", status_code=204)
+def remove_event(event_id: int):
+    try:
+        deleted = delete_event(event_id)
+    except (PyMongoError, RuntimeError, ValueError) as error:
+        raise HTTPException(
+            status_code=503,
+            detail=str(error),
+        ) from error
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    return Response(status_code=204)
 
 
 if __name__ == "__main__":

@@ -1,11 +1,16 @@
 from schemas import EventType
 
 
-def test_get_events_returns_empty_list(client, events_collection):
+def test_get_events_returns_empty_page(client, events_collection):
     response = client.get("/events")
 
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json() == {
+        "items": [],
+        "total": 0,
+        "limit": 10,
+        "offset": 0,
+    }
 
 
 def test_get_events_returns_summaries(client, events_collection, sample_event):
@@ -14,13 +19,65 @@ def test_get_events_returns_summaries(client, events_collection, sample_event):
     response = client.get("/events")
 
     assert response.status_code == 200
-    assert response.json() == [
+    assert response.json() == {
+        "items": [
+            {
+                "event_id": 1,
+                "event_name": "Quarterly Security Review",
+                "event_type": EventType.BOTH.value,
+            }
+        ],
+        "total": 1,
+        "limit": 10,
+        "offset": 0,
+    }
+
+
+def test_get_events_supports_pagination(client, events_collection, sample_event):
+    events_collection.seed(
+        sample_event.model_dump(),
         {
-            "event_id": 1,
-            "event_name": "Quarterly Security Review",
-            "event_type": EventType.BOTH.value,
-        }
-    ]
+            "event_id": 2,
+            "event_name": "Second Event",
+            "event_type": "Fake",
+            "event_description": "Second",
+            "incidents": [],
+        },
+    )
+
+    response = client.get("/events?limit=1&offset=1")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 2
+    assert len(body["items"]) == 1
+    assert body["items"][0]["event_id"] == 2
+
+
+def test_get_events_filters_by_event_type(client, events_collection, sample_event):
+    events_collection.seed(
+        sample_event.model_dump(),
+        {
+            "event_id": 2,
+            "event_name": "Second Event",
+            "event_type": "Fake",
+            "event_description": "Second",
+            "incidents": [],
+        },
+    )
+
+    response = client.get("/events?event_type=Fake")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["event_type"] == "Fake"
+
+
+def test_get_events_rejects_invalid_limit(client, events_collection):
+    response = client.get("/events?limit=0")
+
+    assert response.status_code == 422
 
 
 def test_get_event_returns_full_event(client, events_collection, sample_event):
@@ -96,6 +153,23 @@ def test_put_event_returns_404_when_missing(client, events_collection):
     }
 
     response = client.put("/events/99", json=payload)
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Event not found"
+
+
+def test_delete_event_removes_event(client, events_collection, sample_event):
+    events_collection.seed(sample_event.model_dump())
+
+    response = client.delete("/events/1")
+
+    assert response.status_code == 204
+    assert response.content == b""
+    assert client.get("/events/1").status_code == 404
+
+
+def test_delete_event_returns_404_when_missing(client, events_collection):
+    response = client.delete("/events/99")
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Event not found"

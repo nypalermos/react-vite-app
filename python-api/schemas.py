@@ -37,3 +37,10 @@ class EventSummary(BaseModel):
     event_id: int
     event_name: str
     event_type: EventType
+
+
+class EventListResponse(BaseModel):
+    items: list[EventSummary]
+    total: int
+    limit: int
+    offset: int
