@@ -19,7 +19,14 @@ function Stop-OtherStack {
         [string]$ComposeFile
     )
 
-    docker compose -f $ComposeFile down *> $null
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        docker compose -f $ComposeFile down *> $null
+    }
+    finally {
+        $ErrorActionPreference = $previousPreference
+    }
 }
 
 function Remove-StandaloneContainer {
