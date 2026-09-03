@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-from schemas import Event, EventCreate, EventSummary, EventUpdate
+from schemas import Event, EventCreate, EventSummary, EventType, EventUpdate
 from settings import (
     MONGODB_DATABASE,
     MONGODB_EVENTS_COLLECTION,
@@ -11,13 +11,33 @@ from settings import (
 _client = MongoClient(get_mongodb_uri())
 _events_collection: Collection = _client[MONGODB_DATABASE][MONGODB_EVENTS_COLLECTION]
 
+DEFAULT_PAGE_LIMIT = 10
+MAX_PAGE_LIMIT = 100
 
-def list_events() -> list[EventSummary]:
-    documents = _events_collection.find(
-        {},
-        {"event_id": 1, "event_name": 1, "event_type": 1, "_id": 0},
-    ).sort("event_id", 1)
-    return [EventSummary.model_validate(document) for document in documents]
+
+def _build_list_query(event_type: EventType | None) -> dict:
+    if event_type is None:
+        return {}
+    return {"event_type": event_type.value}
+
+
+def list_events(
+    limit: int = DEFAULT_PAGE_LIMIT,
+    offset: int = 0,
+    event_type: EventType | None = None,
+) -> tuple[list[EventSummary], int]:
+    query = _build_list_query(event_type)
+    projection = {"event_id": 1, "event_name": 1, "event_type": 1, "_id": 0}
+
+    total = _events_collection.count_documents(query)
+    documents = (
+        _events_collection.find(query, projection)
+        .sort("event_id", 1)
+        .skip(offset)
+        .limit(limit)
+    )
+    items = [EventSummary.model_validate(document) for document in documents]
+    return items, total
 
 
 def get_event_by_id(event_id: int) -> Event | None:
@@ -44,3 +64,8 @@ def update_event(event_id: int, payload: EventUpdate) -> Event | None:
         return None
 
     return Event.model_validate(document)
+
+
+def delete_event(event_id: int) -> bool:
+    result = _events_collection.delete_one({"event_id": event_id})
+    return result.deleted_count > 0

@@ -12,16 +12,20 @@ Browser (http://localhost:5173)
       -> Vault (secure mode only, http://localhost:8200)
 ```
 
-| Component | Folder | Port |
-|---|---|---|
-| React frontend | `my-react-application` | 5173 |
-| Python API | `python-api` | 8000 |
-| MongoDB | Docker | 27017 |
-| Vault (secure only) | Docker | 8200 |
+
+| Component           | Folder                 | Port  |
+| ------------------- | ---------------------- | ----- |
+| React frontend      | `my-react-application` | 5173  |
+| Python API          | `python-api`           | 8000  |
+| MongoDB             | Docker                 | 27017 |
+| Vault (secure only) | Docker                 | 8200  |
+
 
 Only one Docker mode can run at a time. Both use port `27017` for MongoDB.
 
 ---
+
+
 
 ## Prerequisites
 
@@ -41,7 +45,11 @@ docker --version
 
 ---
 
+
+
 ## One-Time Setup
+
+
 
 ### 1. Install frontend dependencies
 
@@ -49,6 +57,8 @@ docker --version
 cd C:\Projects\REACT\my-react-application
 npm install
 ```
+
+
 
 ### 2. Install Python dependencies
 
@@ -62,6 +72,8 @@ python -m pip install -r requirements.txt
 Keep the virtual environment activated whenever you run the API.
 
 ---
+
+
 
 ## Simple Mode (Regular Dev)
 
@@ -124,7 +136,7 @@ $env:APP_MODE = "simple"
 python main.py
 ```
 
-API runs at **http://127.0.0.1:8000**.
+API runs at **[http://127.0.0.1:8000](http://127.0.0.1:8000)**.
 
 ### Step 4: Start the React frontend
 
@@ -135,20 +147,24 @@ cd C:\Projects\REACT\my-react-application
 npm run dev
 ```
 
-Open **http://localhost:5173** in your browser.
+Open **[http://localhost:5173](http://localhost:5173)** in your browser.
 
 ### Simple mode verification
 
-| Check | Command / URL | Expected |
-|---|---|---|
-| API health | http://127.0.0.1:8000/health | `{"status":"ok","mode":"simple"}` |
-| API time | http://127.0.0.1:8000/time | JSON with UTC timestamp |
-| Event data | http://127.0.0.1:8000/events/1 | Sample event JSON |
-| Event list | http://127.0.0.1:8000/events | JSON array of event summaries |
-| Frontend proxy | http://localhost:5173 | Home page loads |
-| Events page | http://localhost:5173/events | Event list with Edit links |
+
+| Check          | Command / URL                                                    | Expected                          |
+| -------------- | ---------------------------------------------------------------- | --------------------------------- |
+| API health     | [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)     | `{"status":"ok","mode":"simple"}` |
+| API time       | [http://127.0.0.1:8000/time](http://127.0.0.1:8000/time)         | JSON with UTC timestamp           |
+| Event data     | [http://127.0.0.1:8000/events/1](http://127.0.0.1:8000/events/1) | Sample event JSON                 |
+| Event list     | [http://127.0.0.1:8000/events](http://127.0.0.1:8000/events)     | JSON array of event summaries     |
+| Frontend proxy | [http://localhost:5173](http://localhost:5173)                   | Home page loads                   |
+| Events page    | [http://localhost:5173/events](http://localhost:5173/events)     | Event list with Edit links        |
+
 
 ---
+
+
 
 ## Secure Mode (Auth + Vault)
 
@@ -174,16 +190,20 @@ Secure mode uses separate volumes:
 - `mongodb-secure-data`
 - `vault-data`
 
+
+
 ### Secure dev credentials
 
-| Item | Value |
-|---|---|
-| Mongo root user | `devroot` |
-| Mongo root password | `devrootpassword` |
-| Mongo app user | `app_user` |
-| Mongo app password | `app_password` |
-| Vault UI | http://localhost:8200 |
-| Vault root token | stored in `docker/vault-keys.json` |
+
+| Item                | Value                                          |
+| ------------------- | ---------------------------------------------- |
+| Mongo root user     | `devroot`                                      |
+| Mongo root password | `devrootpassword`                              |
+| Mongo app user      | `app_user`                                     |
+| Mongo app password  | `app_password`                                 |
+| Vault UI            | [http://localhost:8200](http://localhost:8200) |
+| Vault root token    | stored in `docker/vault-keys.json`             |
+
 
 These are for **local development only**.
 
@@ -212,18 +232,22 @@ cd C:\Projects\REACT\my-react-application
 npm run dev
 ```
 
-Open **http://localhost:5173**.
+Open **[http://localhost:5173](http://localhost:5173)**.
 
 ### Secure mode verification
 
-| Check | Command / URL | Expected |
-|---|---|---|
-| API health | http://127.0.0.1:8000/health | `{"status":"ok","mode":"secure"}` |
-| Vault status | `docker exec -e VAULT_ADDR=http://127.0.0.1:8201 vault vault status` | Initialized, not sealed |
-| Vault secret | `docker exec -e VAULT_ADDR=http://127.0.0.1:8201 -e VAULT_TOKEN=<token> vault vault kv get secret/mongodb` | Mongo URI stored |
-| Events page | http://localhost:5173/events | Event list loads from DB |
+
+| Check        | Command / URL                                                                                              | Expected                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| API health   | [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)                                               | `{"status":"ok","mode":"secure"}` |
+| Vault status | `docker exec -e VAULT_ADDR=http://127.0.0.1:8201 vault vault status`                                       | Initialized, not sealed           |
+| Vault secret | `docker exec -e VAULT_ADDR=http://127.0.0.1:8201 -e VAULT_TOKEN=<token> vault vault kv get secret/mongodb` | Mongo URI stored                  |
+| Events page  | [http://localhost:5173/events](http://localhost:5173/events)                                               | Event list loads from DB          |
+
 
 ---
+
+
 
 ## Stopping Everything
 
@@ -235,6 +259,8 @@ cd C:\Projects\REACT\docker
 Stop the Python API and React dev server with `Ctrl+C` in their terminals.
 
 ---
+
+
 
 ## Switching Between Modes
 
@@ -252,61 +278,82 @@ Then start the mode you want:
 
 Restart the Python API with the matching `APP_MODE`.
 
-| Mode | `APP_MODE` | Mongo volume | Vault |
-|---|---|---|---|
-| Simple | `simple` | `mongodb-data` | Not used |
-| Secure | `secure` | `mongodb-secure-data` | Required |
+
+| Mode   | `APP_MODE` | Mongo volume          | Vault    |
+| ------ | ---------- | --------------------- | -------- |
+| Simple | `simple`   | `mongodb-data`        | Not used |
+| Secure | `secure`   | `mongodb-secure-data` | Required |
+
 
 ---
 
+
+
 ## API Endpoints
 
-| Endpoint | Description |
-|---|---|
-| `GET /health` | Health check (includes `mode`) |
-| `GET /time` | Current UTC time |
-| `GET /events` | List all events (summary: id, name, type) |
-| `GET /events/{id}` | Full event by ID from MongoDB |
-| `POST /events` | Create a new event (returns full event, status 201) |
-| `PUT /events/{id}` | Replace an existing event (404 if missing) |
+
+| Endpoint              | Description                                                            |
+| --------------------- | ---------------------------------------------------------------------- |
+| `GET /health`         | Health check (includes `mode`)                                         |
+| `GET /time`           | Current UTC time                                                       |
+| `GET /events`         | Paginated event list (`limit`, `offset`, optional `event_type` filter) |
+| `GET /events/{id}`    | Full event by ID from MongoDB                                          |
+| `POST /events`        | Create a new event (returns full event, status 201)                    |
+| `PUT /events/{id}`    | Replace an existing event (404 if missing)                             |
+| `DELETE /events/{id}` | Delete an event (204 on success, 404 if missing)                       |
+
 
 From the React app, these are called via `/api/...` (Vite proxies to port 8000).
 
 ---
 
+
+
 ## Frontend Routes
 
-| URL | Page |
-|---|---|
-| `/` | Home (time button) |
-| `/events` | Event list with Add/Edit links |
-| `/events/new` | Create a new event |
-| `/events/{id}/edit` | Edit an existing event |
-| `/about` | About page |
+
+| URL                 | Page                                                |
+| ------------------- | --------------------------------------------------- |
+| `/`                 | Home (time button)                                  |
+| `/events`           | Event list with filter, pagination, Add/Edit/Delete |
+| `/events/new`       | Create a new event                                  |
+| `/events/{id}/edit` | Edit an existing event                              |
+| `/about`            | About page                                          |
+
+
+
 
 ### Manage events (UI check)
 
-1. Open http://localhost:5173/events — the seeded event appears in the list.
+1. Open [http://localhost:5173/events](http://localhost:5173/events) — the seeded event appears in the list.
 2. Click **Edit** on event 1 — change the description, add an incident row, save.
 3. Confirm the list reflects your changes after save.
 4. Click **Add event** — create a new event; it appears with the next auto-assigned ID.
 
 ---
 
+
+
 ## Environment Variables (Python API)
 
-| Variable | Simple | Secure | Default |
-|---|---|---|---|
-| `APP_MODE` | `simple` | `secure` | `simple` |
-| `MONGODB_URI` | Optional override | Not used | `mongodb://localhost:27017` |
-| `MONGODB_DATABASE` | Optional | Optional | `react_vite_app` |
-| `MONGODB_EVENTS_COLLECTION` | Optional | Optional | `events` |
-| `VAULT_ADDR` | Not used | Optional | `http://127.0.0.1:8200` |
-| `VAULT_TOKEN` | Not used | **Required** | none |
+
+| Variable                    | Simple            | Secure       | Default                     |
+| --------------------------- | ----------------- | ------------ | --------------------------- |
+| `APP_MODE`                  | `simple`          | `secure`     | `simple`                    |
+| `MONGODB_URI`               | Optional override | Not used     | `mongodb://localhost:27017` |
+| `MONGODB_DATABASE`          | Optional          | Optional     | `react_vite_app`            |
+| `MONGODB_EVENTS_COLLECTION` | Optional          | Optional     | `events`                    |
+| `VAULT_ADDR`                | Not used          | Optional     | `http://127.0.0.1:8200`     |
+| `VAULT_TOKEN`               | Not used          | **Required** | none                        |
+
 
 ---
 
+
+
 ## Troubleshooting
+
+
 
 ### Port already in use
 
@@ -327,6 +374,8 @@ The sample event is missing from MongoDB. Re-seed using the `mongosh` commands i
 2. Confirm `VAULT_TOKEN` is set from `vault-keys.json`
 3. Re-run `.\init-vault.ps1` and `.\seed-vault.ps1` if needed
 
+
+
 ### Vault init fails or `vault-keys.json` is missing
 
 Reset Vault and start over:
@@ -338,13 +387,19 @@ cd C:\Projects\REACT\docker
 .\seed-vault.ps1
 ```
 
+
+
 ### Wrong mode after switching Docker stacks
 
-Restart the Python API with the correct `APP_MODE`. Check http://127.0.0.1:8000/health to confirm.
+Restart the Python API with the correct `APP_MODE`. Check [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) to confirm.
 
 ---
 
+
+
 ## Quick Reference
+
+
 
 ### Simple mode (3 terminals)
 
@@ -363,6 +418,8 @@ python main.py
 cd C:\Projects\REACT\my-react-application
 npm run dev
 ```
+
+
 
 ### Secure mode (3 terminals)
 
@@ -386,16 +443,22 @@ npm run dev
 
 ---
 
+
+
 ## CI/CD
 
 GitHub Actions runs on every push and pull request to `main`. See [README.md](README.md) for repository setup and deployment overview.
 
 ### What runs in CI
 
-| Job | Command | Notes |
-|---|---|---|
-| Python API | `pytest` in `python-api/` | Uses in-memory MongoDB mock |
-| React frontend | `npm run lint`, `npm test`, `npm run build` | No running API required |
+
+| Job            | Command                                     | Notes                       |
+| -------------- | ------------------------------------------- | --------------------------- |
+| Python API     | `pytest` in `python-api/`                   | Uses in-memory MongoDB mock |
+| React frontend | `npm run lint`, `npm test`, `npm run build` | No running API required     |
+
+
+
 
 ### Pre-push checks (run locally)
 
@@ -409,6 +472,8 @@ npm run lint
 npm test
 npm run build
 ```
+
+
 
 ### Deployment (after merge to main)
 
@@ -427,9 +492,12 @@ cd C:\Projects\REACT\docker
 docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
-3. Open http://localhost:8080
+1. Open [http://localhost:8080](http://localhost:8080)
+
+
 
 ### GitHub repo settings
 
 - Protect `main` and require the **CI** workflow to pass before merge.
-- Dependabot opens weekly PRs for npm and pip dependency updates.
+- Dependabot opens monthly PRs for npm and pip dependency updates.
+
