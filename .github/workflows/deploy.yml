@@ -12,7 +12,11 @@ permissions:
 
 jobs:
   build-and-push:
-    if: github.event.workflow_run.conclusion == 'success'
+    # Only publish images after CI succeeds on a push to main (not develop, not PRs).
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
