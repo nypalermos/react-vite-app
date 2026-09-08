@@ -490,15 +490,23 @@ When CI passes on `main`, GitHub Actions builds and pushes Docker images to GHCR
 
 To run the production stack locally or on a host:
 
-1. Copy `docker/.env.example` to `docker/.env` and set `API_IMAGE` and `WEB_IMAGE`.
-2. Run:
+1. Copy `docker/.env.example` to `docker/.env`.
+2. Set `API_IMAGE`, `WEB_IMAGE`, MongoDB usernames/passwords, and matching `MONGODB_URI`.
+3. Run:
 
 ```powershell
 cd C:\Projects\REACT\docker
 docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
-1. Open [http://localhost:8080](http://localhost:8080)
+4. Open http://localhost:8080
+
+Production MongoDB is authenticated and not exposed on the host. Secrets live only in `docker/.env` (gitignored). Init (app user + sample event) runs only when the `mongodb-prod-data` volume is empty; reset it if you are migrating from the old unauthenticated prod compose:
+
+```powershell
+docker compose -f docker-compose.prod.yml --env-file .env down
+docker volume rm docker_mongodb-prod-data
+```
 
 
 
