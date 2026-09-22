@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  review_details: false
+  poem: false
+
+  path_filters:
+    - "!**/package-lock.json"
+    - "!**/dist/**"
+    - "!**/.venv/**"
+    - "!**/node_modules/**"
+
+  path_instructions:
+    - path: "my-react-application/**"
+      instructions: |
+        Focus on React correctness: hooks rules, auth/token usage,
+        loading/error states, and avoiding setState-in-effect anti-patterns.
+        Prefer patterns already used in this app (fetch helpers, AuthProvider).
+    - path: "python-api/**"
+      instructions: |
+        Focus on FastAPI safety: write endpoints must require JWT auth,
+        validate with Pydantic, avoid leaking secrets/errors, and keep
+        Mongo access consistent with existing database helpers.
+    - path: "docker/**"
+      instructions: |
+        Ensure secrets stay in env files (never hardcoded), Mongo auth is
+        preserved in prod compose, and init scripts remain safe for empty volumes.
+    - path: ".github/workflows/**"
+      instructions: |
+        CI should run on develop and main. Deploy should only run after
+        successful CI on pushes to main.
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "develop"
+      - "main"
+    # Uncomment if Dependabot PRs feel too noisy:
+    # ignore_usernames:
+    #   - "dependabot[bot]"
+
+  tools:
+    eslint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    hadolint:
+      enabled: true
+    actionlint:
+      enabled: true
+    ruff:
+      enabled: true
+
+chat:
+  auto_reply: true
