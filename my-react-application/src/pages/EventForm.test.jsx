@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { clearAccessToken, setAccessToken } from '../auth/token.js'
 import EventForm from './EventForm.jsx'
 import { renderWithEventRoutes } from '../test/test-utils.jsx'
 
@@ -16,11 +17,14 @@ vi.mock('react-router', async () => {
 
 describe('EventForm', () => {
   beforeEach(() => {
+    clearAccessToken()
+    setAccessToken('test-token')
     navigate.mockReset()
     vi.stubGlobal('fetch', vi.fn())
   })
 
   afterEach(() => {
+    clearAccessToken()
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
@@ -85,7 +89,10 @@ describe('EventForm', () => {
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith('/api/events', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer test-token',
+        },
         body: JSON.stringify({
           event_name: 'Created Event',
           event_description: 'Created from the form.',
