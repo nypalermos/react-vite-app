@@ -51,6 +51,10 @@
   margin-left: auto;
 }
 
+.nav-auth-button {
+  margin-left: 4px;
+}
+
 .nav-link:hover,
 .nav-link.active,
 .about-link:hover,

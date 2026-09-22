@@ -74,6 +74,7 @@ Production compose notes:
 
 - MongoDB requires authentication and is **not** published to the host (API reaches it on the Compose network only).
 - Credentials come from `docker/.env` (gitignored). Never commit real secrets.
+- Set `JWT_SECRET`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD` for API write access.
 - Init scripts run only on an **empty** data volume. If you previously ran prod compose without auth, remove the old volume first:
 
 ```powershell

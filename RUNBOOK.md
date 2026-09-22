@@ -296,14 +296,15 @@ Restart the Python API with the matching `APP_MODE`.
 | --------------------- | ---------------------------------------------------------------------- |
 | `GET /health`         | Health check (includes `mode`)                                         |
 | `GET /time`           | Current UTC time                                                       |
+| `POST /auth/login`    | Exchange username/password for a JWT (`access_token`)                  |
 | `GET /events`         | Paginated event list (`limit`, `offset`, optional `event_type` filter) |
 | `GET /events/{id}`    | Full event by ID from MongoDB                                          |
-| `POST /events`        | Create a new event (returns full event, status 201)                    |
-| `PUT /events/{id}`    | Replace an existing event (404 if missing)                             |
-| `DELETE /events/{id}` | Delete an event (204 on success, 404 if missing)                       |
+| `POST /events`        | Create event (**Bearer token required**, status 201)                   |
+| `PUT /events/{id}`    | Replace event (**Bearer token required**)                              |
+| `DELETE /events/{id}` | Delete event (**Bearer token required**, 204 on success)               |
 
 
-From the React app, these are called via `/api/...` (Vite proxies to port 8000).
+From the React app, these are called via `/api/...` (Vite proxies to port 8000). Write endpoints expect `Authorization: Bearer <token>`. Local defaults are `admin` / `admin` (override with `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `JWT_SECRET`).
 
 ---
 
@@ -316,8 +317,9 @@ From the React app, these are called via `/api/...` (Vite proxies to port 8000).
 | ------------------- | --------------------------------------------------- |
 | `/`                 | Home (time button)                                  |
 | `/events`           | Event list with filter, pagination, Add/Edit/Delete |
-| `/events/new`       | Create a new event                                  |
-| `/events/{id}/edit` | Edit an existing event                              |
+| `/events/new`       | Create a new event (requires sign-in)               |
+| `/events/{id}/edit` | Edit an existing event (requires sign-in)           |
+| `/login`            | Sign in for write actions                           |
 | `/about`            | About page                                          |
 
 
@@ -325,10 +327,11 @@ From the React app, these are called via `/api/...` (Vite proxies to port 8000).
 
 ### Manage events (UI check)
 
-1. Open [http://localhost:5173/events](http://localhost:5173/events) — the seeded event appears in the list.
-2. Click **Edit** on event 1 — change the description, add an incident row, save.
-3. Confirm the list reflects your changes after save.
-4. Click **Add event** — create a new event; it appears with the next auto-assigned ID.
+1. Open [http://localhost:5173/events](http://localhost:5173/events) — the seeded event appears in the list (read-only without sign-in).
+2. Click **Sign in** and use `admin` / `admin` (or your configured credentials).
+3. Click **Edit** on event 1 — change the description, add an incident row, save.
+4. Confirm the list reflects your changes after save.
+5. Click **Add event** — create a new event; it appears with the next auto-assigned ID.
 
 ---
 
@@ -343,6 +346,10 @@ From the React app, these are called via `/api/...` (Vite proxies to port 8000).
 | `MONGODB_URI`               | Optional override | Not used     | `mongodb://localhost:27017` |
 | `MONGODB_DATABASE`          | Optional          | Optional     | `react_vite_app`            |
 | `MONGODB_EVENTS_COLLECTION` | Optional          | Optional     | `events`                    |
+| `JWT_SECRET`                | Optional          | Optional     | `dev-only-change-me`        |
+| `ADMIN_USERNAME`            | Optional          | Optional     | `admin`                     |
+| `ADMIN_PASSWORD`            | Optional          | Optional     | `admin`                     |
+| `JWT_EXPIRE_MINUTES`        | Optional          | Optional     | `480`                       |
 | `VAULT_ADDR`                | Not used          | Optional     | `http://127.0.0.1:8200`     |
 | `VAULT_TOKEN`               | Not used          | **Required** | none                        |
 

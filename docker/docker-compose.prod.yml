@@ -45,6 +45,10 @@ services:
       APP_MODE: simple
       MONGODB_URI: ${MONGODB_URI:?Set MONGODB_URI in docker/.env}
       MONGODB_DATABASE: ${MONGO_APP_DATABASE:-react_vite_app}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in docker/.env}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:?Set ADMIN_USERNAME in docker/.env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in docker/.env}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-480}
 
   web:
     image: ${WEB_IMAGE:?Set WEB_IMAGE in docker/.env}

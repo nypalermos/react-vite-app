@@ -12,6 +12,13 @@ VAULT_MONGO_SECRET_PATH = os.getenv("VAULT_MONGO_SECRET_PATH", "secret/data/mong
 
 SIMPLE_MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
 
+# Auth (env-configured admin for write endpoints)
+JWT_SECRET = os.getenv("JWT_SECRET", "dev-only-change-me")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
+
 
 def get_mongodb_uri() -> str:
     if APP_MODE == "simple":

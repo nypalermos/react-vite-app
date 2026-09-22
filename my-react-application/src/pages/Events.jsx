@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { useAuth } from '../auth/useAuth.js'
+import { authHeaders } from '../auth/token.js'
 
 const PAGE_SIZE = 10
 const EVENT_TYPE_OPTIONS = [
@@ -10,6 +12,7 @@ const EVENT_TYPE_OPTIONS = [
 ]
 
 function Events() {
+  const { isAuthenticated } = useAuth()
   const [events, setEvents] = useState([])
   const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
@@ -86,7 +89,12 @@ function Events() {
     try {
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'DELETE',
+        headers: authHeaders(),
       })
+
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('Sign in required to delete events.')
+      }
 
       if (response.status === 404) {
         throw new Error('Event not found.')
@@ -139,9 +147,15 @@ function Events() {
       <div className="events-content">
         <div className="events-list-header">
           <h2>Events</h2>
-          <Link to="/events/new" className="time-button event-form-link">
-            Add event
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/events/new" className="time-button event-form-link">
+              Add event
+            </Link>
+          ) : (
+            <Link to="/login" className="time-button event-form-link">
+              Sign in to manage
+            </Link>
+          )}
         </div>
 
         <div className="events-list-controls">
@@ -162,7 +176,11 @@ function Events() {
         {error && <p className="time-error">{error}</p>}
 
         {!loading && !error && total === 0 && (
-          <p>No events yet. Create one to get started.</p>
+          <p>
+            {isAuthenticated
+              ? 'No events yet. Create one to get started.'
+              : 'No events yet. Sign in to create one.'}
+          </p>
         )}
 
         {!loading && !error && total > 0 && (
@@ -181,20 +199,26 @@ function Events() {
                     </p>
                   </div>
                   <div className="event-list-item-actions">
-                    <Link
-                      to={`/events/${event.event_id}/edit`}
-                      className="time-button event-form-link"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      type="button"
-                      className="time-button event-delete-button"
-                      onClick={() => handleDelete(event.event_id, event.event_name)}
-                      disabled={deletingId === event.event_id}
-                    >
-                      {deletingId === event.event_id ? 'Deleting...' : 'Delete'}
-                    </button>
+                    {isAuthenticated && (
+                      <>
+                        <Link
+                          to={`/events/${event.event_id}/edit`}
+                          className="time-button event-form-link"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          type="button"
+                          className="time-button event-delete-button"
+                          onClick={() =>
+                            handleDelete(event.event_id, event.event_name)
+                          }
+                          disabled={deletingId === event.event_id}
+                        >
+                          {deletingId === event.event_id ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </li>
               ))}

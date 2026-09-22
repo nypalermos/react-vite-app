@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Query, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo.errors import PyMongoError
 
+from auth import create_access_token, require_auth, verify_credentials
 from database import (
     MAX_PAGE_LIMIT,
     create_event,
@@ -13,7 +14,15 @@ from database import (
     list_events,
     update_event,
 )
-from schemas import Event, EventCreate, EventListResponse, EventSummary, EventType, EventUpdate
+from schemas import (
+    Event,
+    EventCreate,
+    EventListResponse,
+    EventType,
+    EventUpdate,
+    LoginRequest,
+    TokenResponse,
+)
 from settings import APP_MODE
 
 app = FastAPI(title="React Vite API")
@@ -22,6 +31,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
     allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 API_PORT = 8000
@@ -35,6 +45,14 @@ def health_check():
 @app.get("/time")
 def get_current_time():
     return {"time": datetime.now(timezone.utc).isoformat()}
+
+
+@app.post("/auth/login", response_model=TokenResponse)
+def login(payload: LoginRequest):
+    if not verify_credentials(payload.username, payload.password):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    return TokenResponse(access_token=create_access_token(payload.username))
 
 
 @app.get("/events", response_model=EventListResponse)
@@ -71,7 +89,10 @@ def get_event(event_id: int):
 
 
 @app.post("/events", response_model=Event, status_code=201)
-def post_event(payload: EventCreate):
+def post_event(
+    payload: EventCreate,
+    _: Annotated[str, Depends(require_auth)],
+):
     try:
         return create_event(payload)
     except (PyMongoError, RuntimeError, ValueError) as error:
@@ -82,7 +103,11 @@ def post_event(payload: EventCreate):
 
 
 @app.put("/events/{event_id}", response_model=Event)
-def put_event(event_id: int, payload: EventUpdate):
+def put_event(
+    event_id: int,
+    payload: EventUpdate,
+    _: Annotated[str, Depends(require_auth)],
+):
     try:
         event = update_event(event_id, payload)
     except (PyMongoError, RuntimeError, ValueError) as error:
@@ -98,7 +123,10 @@ def put_event(event_id: int, payload: EventUpdate):
 
 
 @app.delete("/events/{event_id}", status_code=204)
-def remove_event(event_id: int):
+def remove_event(
+    event_id: int,
+    _: Annotated[str, Depends(require_auth)],
+):
     try:
         deleted = delete_event(event_id)
     except (PyMongoError, RuntimeError, ValueError) as error:

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
+import { authHeaders } from '../auth/token.js'
 
 const EVENT_TYPES = ['Real', 'Fake', 'Both']
 
@@ -102,9 +103,14 @@ function EventForm() {
       const method = isEdit ? 'PUT' : 'POST'
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(payload),
       })
+
+      if (response.status === 401 || response.status === 403) {
+        navigate('/login')
+        return
+      }
 
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`)
