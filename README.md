@@ -19,16 +19,25 @@ See [RUNBOOK.md](RUNBOOK.md) for full setup in simple and secure modes.
 
 ## CI/CD
 
+### Branching
+
+| Branch | Purpose |
+|---|---|
+| `develop` | Integration branch for feature PRs; **CI only** |
+| `main` | Release branch; **CI**, then **Deploy** to GHCR |
+
+Typical flow: `feature/*` → PR into `develop` → later PR `develop` → `main`.
+
 ### Continuous integration
 
-On every push and pull request to `main`, GitHub Actions runs:
+On every push and pull request to `develop` or `main`, GitHub Actions runs:
 
 - **Python API** — `pytest` (in-memory MongoDB mock; no Docker required)
 - **React frontend** — ESLint, Vitest, and production build
 
 ### Continuous deployment
 
-After CI passes on a push to `main`, images are built and pushed to GitHub Container Registry:
+After CI passes on a **push** to `main` (for example merging `develop` into `main`), images are built and pushed to GitHub Container Registry:
 
 - `ghcr.io/<owner>/react-api:latest`
 - `ghcr.io/<owner>/react-web:latest`
@@ -61,5 +70,6 @@ Open http://localhost:8080
 
 ### Recommended GitHub settings
 
-- Enable branch protection on `main` and require the **CI** workflow to pass before merge.
+- Protect `develop` and `main`; require the **CI** workflow to pass before merge.
+- Prefer PRs into `develop` for day-to-day work; merge `develop` → `main` when you want a release/deploy.
 - Dependabot is configured in `.github/dependabot.yml` for weekly npm and pip updates.
