@@ -13,12 +13,22 @@ VAULT_MONGO_SECRET_PATH = os.getenv("VAULT_MONGO_SECRET_PATH", "secret/data/mong
 SIMPLE_MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
 
 # Auth (env-configured admin for write endpoints)
-# DEMO BUG: ignore env and hardcode a weak shared secret
-JWT_SECRET = "password123"
+JWT_SECRET = os.getenv("JWT_SECRET", "dev-only-change-me")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
+
+# Comma-separated browser origins allowed by CORS (Vite default for local dev).
+DEFAULT_CORS_ORIGINS = "http://localhost:5173"
+
+
+def get_cors_origins() -> list[str]:
+    raw = os.getenv("CORS_ORIGINS", DEFAULT_CORS_ORIGINS)
+    origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return origins or [DEFAULT_CORS_ORIGINS]
+
+
 def get_mongodb_uri() -> str:
     """Return the MongoDB URI for the configured application mode."""
     if APP_MODE == "simple":

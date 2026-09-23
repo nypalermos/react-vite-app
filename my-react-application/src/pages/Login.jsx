@@ -21,9 +21,6 @@ function Login() {
     setError(null)
     setSubmitting(true)
 
-    // DEMO BUG: logging the password field
-    console.log('Attempting login for', username, 'with password length', password.length)
-
     try {
       await login(username, password)
       navigate('/events')

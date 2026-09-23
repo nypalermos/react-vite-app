@@ -499,15 +499,29 @@ When CI passes on `main`, GitHub Actions builds and pushes Docker images to GHCR
 To run the production stack locally or on a host:
 
 1. Copy `docker/.env.example` to `docker/.env`.
-2. Set `API_IMAGE`, `WEB_IMAGE`, MongoDB usernames/passwords, and matching `MONGODB_URI`.
-3. Run:
+2. Set `API_IMAGE`, `WEB_IMAGE`, MongoDB usernames/passwords, matching `MONGODB_URI`, JWT settings, and `CORS_ORIGINS`.
+3. Generate TLS certs for local HTTPS (self-signed):
+
+```powershell
+cd C:\Projects\REACT\docker
+.\generate-local-certs.ps1
+```
+
+4. Run:
 
 ```powershell
 cd C:\Projects\REACT\docker
 docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
-4. Open http://localhost:8080
+5. Open **https://localhost** (port 80 redirects to HTTPS). Trust the self-signed cert in the browser/OS when prompted.
+
+For a real deployment, replace `docker/certs/*.pem` with certificates from your CA or hosting provider (Let's Encrypt, cloud load balancer, etc.). The nginx image expects:
+
+- `fullchain.pem` — certificate (and chain)
+- `privkey.pem` — private key
+
+The web container proxies `/api/*` to the API service on the Compose network, so the browser talks to one HTTPS origin.
 
 Production MongoDB is authenticated and not exposed on the host. Secrets live only in `docker/.env` (gitignored). Init (app user + sample event) runs only when the `mongodb-prod-data` volume is empty; reset it if you are migrating from the old unauthenticated prod compose:
 

@@ -62,18 +62,27 @@ npm run build
 1. Copy `docker/.env.example` to `docker/.env`.
 2. Set image names (`API_IMAGE`, `WEB_IMAGE`) and **strong MongoDB passwords**.
 3. Keep `MONGODB_URI` in sync with `MONGO_APP_USERNAME` / `MONGO_APP_PASSWORD` / `MONGO_APP_DATABASE`.
-4. Ensure you can pull from GHCR (packages may be private by default).
-5. Start the stack:
+4. Set `JWT_SECRET`, admin credentials, and `CORS_ORIGINS` (e.g. `https://localhost` for local HTTPS).
+5. Generate local TLS certs (once):
+
+```powershell
+cd docker
+.\generate-local-certs.ps1
+```
+
+6. Ensure you can pull from GHCR (packages may be private by default).
+7. Start the stack:
 
 ```powershell
 cd docker
 docker compose -f docker-compose.prod.yml --env-file .env up -d
 ```
 
-Open http://localhost:8080
+Open **https://localhost** (HTTP on port 80 redirects to HTTPS). Accept/trust the self-signed certificate when prompted.
 
 Production compose notes:
 
+- The web container terminates TLS and reverse-proxies `/api/*` to the API (same-origin for the browser).
 - MongoDB requires authentication and is **not** published to the host (API reaches it on the Compose network only).
 - Credentials come from `docker/.env` (gitignored). Never commit real secrets.
 - Set `JWT_SECRET`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD` for API write access.
