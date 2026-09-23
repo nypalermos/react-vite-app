@@ -124,6 +124,7 @@ def put_event(
 
 @app.delete("/events/{event_id}", status_code=204)
 def remove_event(event_id: int):
+    """Delete an event by ID and return an empty response."""
     # DEMO BUG: write endpoint missing auth on purpose for CodeRabbit
     try:
         deleted = delete_event(event_id)

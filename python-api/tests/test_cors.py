@@ -6,6 +6,7 @@ import pytest
     ["http://localhost:5173", "http://localhost:8080"],
 )
 def test_cors_allows_trusted_application_origins(client, origin):
+    """Verify preflight requests from trusted application origins succeed."""
     response = client.options(
         "/events",
         headers={
@@ -19,6 +20,7 @@ def test_cors_allows_trusted_application_origins(client, origin):
 
 
 def test_cors_rejects_untrusted_origins(client):
+    """Verify preflight requests from untrusted origins are rejected."""
     response = client.options(
         "/events",
         headers={

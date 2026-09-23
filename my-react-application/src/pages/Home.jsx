@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+/** Render the landing page controls and server-time status. */
 function Home() {
   const [currentTime, setCurrentTime] = useState(null)
   const [error, setError] = useState(null)
@@ -11,6 +12,7 @@ function Home() {
     setLoading(true)
     setError(null)
 
+    /** Fetch the current server time when automatic refresh is enabled. */
     async function fetchCurrentTime() {
       try {
         const response = await fetch('/api/time')
@@ -38,6 +40,7 @@ function Home() {
     }
   }, [autoRefresh])
 
+  /** Fetch the current server time after a manual request. */
   async function fetchCurrentTime() {
     setLoading(true)
     setError(null)

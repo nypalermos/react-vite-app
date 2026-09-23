@@ -20,6 +20,7 @@ JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 def get_mongodb_uri() -> str:
+    """Return the MongoDB URI for the configured application mode."""
     if APP_MODE == "simple":
         return SIMPLE_MONGODB_URI
 
