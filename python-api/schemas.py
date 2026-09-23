@@ -44,3 +44,13 @@ class EventListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

@@ -98,7 +98,21 @@ def test_get_event_returns_404_when_missing(client, events_collection):
     assert response.json()["detail"] == "Event not found"
 
 
-def test_post_event_creates_event(client, events_collection):
+def test_post_event_requires_auth(client, events_collection):
+    response = client.post(
+        "/events",
+        json={
+            "event_name": "Unauthorized",
+            "event_description": "Should fail.",
+            "event_type": "Real",
+            "incidents": [],
+        },
+    )
+
+    assert response.status_code == 401
+
+
+def test_post_event_creates_event(client, events_collection, auth_headers):
     payload = {
         "event_name": "Created via API",
         "event_description": "Created from a test.",
@@ -108,7 +122,7 @@ def test_post_event_creates_event(client, events_collection):
         ],
     }
 
-    response = client.post("/events", json=payload)
+    response = client.post("/events", json=payload, headers=auth_headers)
 
     assert response.status_code == 201
     body = response.json()
@@ -117,9 +131,10 @@ def test_post_event_creates_event(client, events_collection):
     assert body["incidents"][0]["username"] == "tester"
 
 
-def test_post_event_rejects_invalid_payload(client, events_collection):
+def test_post_event_rejects_invalid_payload(client, events_collection, auth_headers):
     response = client.post(
         "/events",
+        headers=auth_headers,
         json={
             "event_name": "Missing fields",
         },
@@ -128,7 +143,7 @@ def test_post_event_rejects_invalid_payload(client, events_collection):
     assert response.status_code == 422
 
 
-def test_put_event_updates_existing_event(client, events_collection, sample_event):
+def test_put_event_updates_existing_event(client, events_collection, sample_event, auth_headers):
     events_collection.seed(sample_event.model_dump())
     payload = {
         "event_name": "Updated via API",
@@ -137,14 +152,14 @@ def test_put_event_updates_existing_event(client, events_collection, sample_even
         "incidents": [],
     }
 
-    response = client.put("/events/1", json=payload)
+    response = client.put("/events/1", json=payload, headers=auth_headers)
 
     assert response.status_code == 200
     assert response.json()["event_name"] == "Updated via API"
     assert response.json()["event_type"] == "Fake"
 
 
-def test_put_event_returns_404_when_missing(client, events_collection):
+def test_put_event_returns_404_when_missing(client, events_collection, auth_headers):
     payload = {
         "event_name": "Ghost Event",
         "event_description": "Should not exist.",
@@ -152,24 +167,32 @@ def test_put_event_returns_404_when_missing(client, events_collection):
         "incidents": [],
     }
 
-    response = client.put("/events/99", json=payload)
+    response = client.put("/events/99", json=payload, headers=auth_headers)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Event not found"
 
 
-def test_delete_event_removes_event(client, events_collection, sample_event):
+def test_delete_event_requires_auth(client, events_collection, sample_event):
     events_collection.seed(sample_event.model_dump())
 
     response = client.delete("/events/1")
+
+    assert response.status_code == 401
+
+
+def test_delete_event_removes_event(client, events_collection, sample_event, auth_headers):
+    events_collection.seed(sample_event.model_dump())
+
+    response = client.delete("/events/1", headers=auth_headers)
 
     assert response.status_code == 204
     assert response.content == b""
     assert client.get("/events/1").status_code == 404
 
 
-def test_delete_event_returns_404_when_missing(client, events_collection):
-    response = client.delete("/events/99")
+def test_delete_event_returns_404_when_missing(client, events_collection, auth_headers):
+    response = client.delete("/events/99", headers=auth_headers)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Event not found"

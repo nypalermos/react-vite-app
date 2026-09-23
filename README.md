@@ -28,6 +28,8 @@ See [RUNBOOK.md](RUNBOOK.md) for full setup in simple and secure modes.
 
 Typical flow: `feature/*` → PR into `develop` → later PR `develop` → `main`.
 
+**Enforced:** PRs into `main` must come from `develop`. Feature branches cannot merge directly into `main` (GitHub Actions check: **Develop only into main**).
+
 ### Continuous integration
 
 On every push and pull request to `develop` or `main`, GitHub Actions runs:
@@ -74,6 +76,7 @@ Production compose notes:
 
 - MongoDB requires authentication and is **not** published to the host (API reaches it on the Compose network only).
 - Credentials come from `docker/.env` (gitignored). Never commit real secrets.
+- Set `JWT_SECRET`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD` for API write access.
 - Init scripts run only on an **empty** data volume. If you previously ran prod compose without auth, remove the old volume first:
 
 ```powershell
@@ -84,5 +87,6 @@ docker volume rm docker_mongodb-prod-data
 ### Recommended GitHub settings
 
 - Protect `develop` and `main`; require the **CI** workflow to pass before merge.
+- Protect `main` with the **Develop only into main** check so feature branches cannot merge directly to `main`.
 - Prefer PRs into `develop` for day-to-day work; merge `develop` → `main` when you want a release/deploy.
 - Dependabot is configured in `.github/dependabot.yml` for weekly npm and pip updates.

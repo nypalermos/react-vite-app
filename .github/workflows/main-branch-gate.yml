@@ -1,0 +1,22 @@
+name: Main branch gate
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  require-develop:
+    name: Develop only into main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR source branch is develop
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          echo "PR: $HEAD_REF -> $BASE_REF"
+          if [ "$HEAD_REF" != "develop" ]; then
+            echo "::error::PRs into main must come from 'develop' (got '$HEAD_REF'). Open feature PRs against develop, then open a release PR from develop into main."
+            exit 1
+          fi
+          echo "OK: source branch is develop."
