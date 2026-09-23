@@ -456,11 +456,12 @@ npm run dev
 
 GitHub Actions runs CI on every push and pull request to `develop` or `main`. Deploy runs only after a successful CI **push** to `main`. See [README.md](README.md) for repository setup and deployment overview.
 
-| Event | CI | Deploy |
-|---|---|---|
-| PR or push to `develop` | Yes | No |
-| PR to `main` | Yes | No |
-| Push/merge to `main` | Yes | Yes (after CI) |
+| Event | CI | Deploy | Notes |
+|---|---|---|---|
+| PR or push to `develop` | Yes | No | Feature integration |
+| PR to `main` from `develop` | Yes | No | Allowed release PR |
+| PR to `main` from any other branch | Gate fails | No | Blocked by **Develop only into main** |
+| Push/merge to `main` | Yes | Yes (after CI) | Publishes GHCR images |
 
 ### What runs in CI
 
@@ -520,6 +521,7 @@ docker volume rm docker_mongodb-prod-data
 ### GitHub repo settings
 
 - Protect `develop` and `main`; require the **CI** workflow to pass before merge.
+- Protect `main` with **Develop only into main** so only `develop` → `main` release PRs can merge.
 - Use `develop` for feature integration; merge to `main` when you want GHCR images published.
 - Dependabot opens monthly PRs for npm and pip dependency updates.
 
