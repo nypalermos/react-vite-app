@@ -23,13 +23,13 @@ from schemas import (
     LoginRequest,
     TokenResponse,
 )
-from settings import APP_MODE
+from settings import APP_MODE, get_cors_origins
 
 app = FastAPI(title="React Vite API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:8080"],
+    allow_origins=get_cors_origins(),
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
