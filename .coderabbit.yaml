@@ -1,4 +1,8 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit is PAUSED until further notice.
+# Settings are kept so we can re-enable later by flipping auto_review.enabled
+# (and chat.auto_reply) back to true.
 language: "en-US"
 
 reviews:
@@ -36,7 +40,8 @@ reviews:
         successful CI on pushes to main.
 
   auto_review:
-    enabled: true
+    # Paused: set to true to resume automatic PR reviews
+    enabled: false
     drafts: false
     base_branches:
       - "develop"
@@ -58,4 +63,5 @@ reviews:
       enabled: true
 
 chat:
-  auto_reply: true
+  # Paused with auto_review; set to true when re-enabling CodeRabbit
+  auto_reply: false
