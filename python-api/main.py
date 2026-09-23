@@ -29,7 +29,7 @@ app = FastAPI(title="React Vite API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:8080"],
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
@@ -127,6 +127,7 @@ def remove_event(
     event_id: int,
     _: Annotated[str, Depends(require_auth)],
 ):
+    """Delete an event by ID and return an empty response."""
     try:
         deleted = delete_event(event_id)
     except (PyMongoError, RuntimeError, ValueError) as error:

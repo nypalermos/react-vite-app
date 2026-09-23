@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { useAuth } from '../auth/useAuth.js'
 
+/** Render the sign-in form and redirect authenticated users. */
 function Login() {
   const { isAuthenticated, login } = useAuth()
   const navigate = useNavigate()
@@ -14,10 +15,14 @@ function Login() {
     return <Navigate to="/events" replace />
   }
 
+  /** Authenticate the submitted credentials and open the events page. */
   async function handleSubmit(event) {
     event.preventDefault()
     setError(null)
     setSubmitting(true)
+
+    // DEMO BUG: logging the password field
+    console.log('Attempting login for', username, 'with password length', password.length)
 
     try {
       await login(username, password)
