@@ -1,42 +1,60 @@
 import { useEffect, useState } from 'react'
 
+async function requestCurrentTime() {
+  const response = await fetch('/api/time')
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`)
+  }
+
+  const data = await response.json()
+  return data.time
+}
+
+function getErrorMessage(error) {
+  return error instanceof Error
+    ? error.message
+    : 'Unable to reach the API. Is the Python server running?'
+}
+
 /** Render the landing page controls and server-time status. */
 function Home() {
   const [currentTime, setCurrentTime] = useState(null)
   const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [autoRefresh, setAutoRefresh] = useState(true)
 
-  // DEMO BUG: synchronous setState inside an effect (react-hooks/set-state-in-effect)
   useEffect(() => {
-    setLoading(true)
-    setError(null)
+    if (!autoRefresh) {
+      return undefined
+    }
+
+    let ignore = false
 
     /** Fetch the current server time when automatic refresh is enabled. */
     async function fetchCurrentTime() {
       try {
-        const response = await fetch('/api/time')
-
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`)
+        const time = await requestCurrentTime()
+        if (!ignore) {
+          setCurrentTime(time)
+          setError(null)
         }
-
-        const data = await response.json()
-        setCurrentTime(data.time)
       } catch (fetchError) {
-        setCurrentTime(null)
-        setError(
-          fetchError instanceof Error
-            ? fetchError.message
-            : 'Unable to reach the API. Is the Python server running?',
-        )
+        if (!ignore) {
+          setCurrentTime(null)
+          setError(getErrorMessage(fetchError))
+        }
       } finally {
-        setLoading(false)
+        if (!ignore) {
+          setLoading(false)
+        }
       }
     }
 
-    if (autoRefresh) {
-      fetchCurrentTime()
+    fetchCurrentTime()
+
+    return () => {
+      ignore = true
     }
   }, [autoRefresh])
 
@@ -46,23 +64,21 @@ function Home() {
     setError(null)
 
     try {
-      const response = await fetch('/api/time')
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`)
-      }
-
-      const data = await response.json()
-      setCurrentTime(data.time)
+      setCurrentTime(await requestCurrentTime())
     } catch (fetchError) {
       setCurrentTime(null)
-      setError(
-        fetchError instanceof Error
-          ? fetchError.message
-          : 'Unable to reach the API. Is the Python server running?',
-      )
+      setError(getErrorMessage(fetchError))
     } finally {
       setLoading(false)
+    }
+  }
+
+  function toggleAutoRefresh() {
+    const nextAutoRefresh = !autoRefresh
+    setAutoRefresh(nextAutoRefresh)
+    setLoading(nextAutoRefresh)
+    if (nextAutoRefresh) {
+      setError(null)
     }
   }
 
@@ -81,7 +97,7 @@ function Home() {
         <button
           type="button"
           className="time-button"
-          onClick={() => setAutoRefresh(!autoRefresh)}
+          onClick={toggleAutoRefresh}
         >
           Auto refresh: {autoRefresh ? 'on' : 'off'}
         </button>
