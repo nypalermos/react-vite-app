@@ -1,9 +1,42 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function Home() {
   const [currentTime, setCurrentTime] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [autoRefresh, setAutoRefresh] = useState(true)
+
+  // DEMO BUG: synchronous setState inside an effect (react-hooks/set-state-in-effect)
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
+
+    async function fetchCurrentTime() {
+      try {
+        const response = await fetch('/api/time')
+
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`)
+        }
+
+        const data = await response.json()
+        setCurrentTime(data.time)
+      } catch (fetchError) {
+        setCurrentTime(null)
+        setError(
+          fetchError instanceof Error
+            ? fetchError.message
+            : 'Unable to reach the API. Is the Python server running?',
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (autoRefresh) {
+      fetchCurrentTime()
+    }
+  }, [autoRefresh])
 
   async function fetchCurrentTime() {
     setLoading(true)
@@ -41,6 +74,13 @@ function Home() {
           disabled={loading}
         >
           {loading ? 'Loading...' : 'Get current time from API'}
+        </button>
+        <button
+          type="button"
+          className="time-button"
+          onClick={() => setAutoRefresh(!autoRefresh)}
+        >
+          Auto refresh: {autoRefresh ? 'on' : 'off'}
         </button>
         {currentTime && (
           <p className="time-result">

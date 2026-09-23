@@ -29,7 +29,8 @@ app = FastAPI(title="React Vite API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    # DEMO BUG: overly permissive CORS
+    allow_origins=["*"],
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
@@ -123,10 +124,8 @@ def put_event(
 
 
 @app.delete("/events/{event_id}", status_code=204)
-def remove_event(
-    event_id: int,
-    _: Annotated[str, Depends(require_auth)],
-):
+def remove_event(event_id: int):
+    # DEMO BUG: write endpoint missing auth on purpose for CodeRabbit
     try:
         deleted = delete_event(event_id)
     except (PyMongoError, RuntimeError, ValueError) as error:
